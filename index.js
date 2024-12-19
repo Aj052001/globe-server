@@ -213,6 +213,54 @@ const fetchGithubDataFromUrl = async () => {
 };
 
 // Route to Scrape GitHub Profiles and Save Data to MongoDB
+// app.get("/scrape_multiple_github", async (req, res) => {
+//   try {
+//     const dataFromUrl = await fetchGithubDataFromUrl();
+
+//     if (!dataFromUrl || !Array.isArray(dataFromUrl.profiles)) {
+//       return res.status(400).json({ error: "Invalid or missing data from URL." });
+//     }
+
+//     const githubData = dataFromUrl.profiles;
+
+//     // Use Promise.all for concurrent scraping
+//     const allUserData = await Promise.all(
+//       githubData.map(async (entry) => {
+//         const githubUrl = entry.github;
+//         const houseName = entry.location || "Unknown House";
+
+//         if (!githubUrl) return { error: "Missing GitHub URL." };
+
+//         const username = extractUsernameFromUrl(githubUrl);
+
+//         if (!username) return { error: `Invalid GitHub URL: ${githubUrl}` };
+
+//         try {
+//           const userData = await scrapeGithub(username);
+//           userData.house = houseName;
+
+//           // Save the data to MongoDB
+//           const savedData = await GithubData.create(userData);
+//           console.log("Saved data to MongoDB:", savedData);
+
+//           return savedData;
+//         } catch (error) {
+//           return { error: error.message };
+//         }
+//       })
+//     );
+
+//     res.json({
+//       message: "Data scraped and saved to MongoDB",
+//       data: allUserData,
+//     });
+//   } catch (error) {
+//     console.error("Error scraping GitHub profiles:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
 app.get("/scrape_multiple_github", async (req, res) => {
   try {
     const dataFromUrl = await fetchGithubDataFromUrl();
@@ -250,9 +298,12 @@ app.get("/scrape_multiple_github", async (req, res) => {
       })
     );
 
+    // Filter valid data only
+    const validData = allUserData.filter((item) => !item.error);
+
     res.json({
       message: "Data scraped and saved to MongoDB",
-      data: allUserData,
+      data: validData,
     });
   } catch (error) {
     console.error("Error scraping GitHub profiles:", error);
