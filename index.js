@@ -124,6 +124,10 @@ app.get("/get_saved_data", async (req, res) => {
 app.get("/check",(req,res)=>{
   res.send("Done")
 })
+
+app.get("/",(req,res)=>{
+  res.send("Hello")
+})
 // Start the server
 const port = process.env.PORT || 3005;
 app.listen(port, () => {
