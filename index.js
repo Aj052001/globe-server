@@ -1,182 +1,131 @@
-const express = require('express');
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const gs = require('github-scraper'); // Import the GitHub scraper module
-const cors = require('cors'); // Import the CORS module
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+const gs = require("github-scraper");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  }
+};
+
 const app = express();
+app.use(cors());
+connectDB();
 
-// Enable CORS for all routes
-app.use(cors()); // This will allow all origins. You can configure it to restrict origins if needed.
+// MongoDB Schema and Model
+const githubDataSchema = new mongoose.Schema({
+  resident: String,
+  revenue: Number, // Total repositories
+  detail: String, // First pinned repository
+  house: String, // House name
+  timestamp: { type: Date, default: Date.now }, // Timestamp for tracking
+});
 
+const GithubData = mongoose.model("GithubData", githubDataSchema);
 
+// Helper Functions
 function extractUsernameFromUrl(githubUrl) {
   const regex = /^(https?:\/\/)?github\.com\/([a-zA-Z0-9-_]+)/;
   const match = githubUrl.match(regex);
   return match ? match[2] : null;
 }
 
-
-
 async function scrapeGithub(username) {
-    return new Promise((resolve, reject) => {
-      gs(username, async (err, data) => {
-        if (err) {
-          reject({ error: `Error fetching data for user ${username}` });
-        } else {
-          // Log the data to check the response format
-          console.log(`Data for ${username}:`, data);
-  
-          const repoCount = data.repos || 0;
-          const latestRepo = repoCount > 0 ? data.repos[0] : null;
-          const latestRepoUrl = latestRepo ? `https://github.com${latestRepo.url}` : 'No repos found';
-  
-          // Extract pinned repos names from the `pinned` array
-          const pinnedRepos = data.pinned ? data.pinned.map(repo => repo.url.split('/').pop()) : [];
-  
-          // Construct the response in your desired format
-          resolve({
-            resident: data.name || 'Not available',
-            revenue: repoCount,  // Total repositories
-            detail: pinnedRepos[0],  // List of pinned repositories
-          });
-        }
-      });
+  return new Promise((resolve, reject) => {
+    gs(username, async (err, data) => {
+      if (err) {
+        reject({ error: `Error fetching data for user ${username}` });
+      } else {
+        const repoCount = data.repos || 0;
+        const pinnedRepos = data.pinned
+          ? data.pinned.map((repo) => repo.url.split("/").pop())
+          : [];
+        resolve({
+          resident: data.name || "Not available",
+          revenue: repoCount,
+          detail: pinnedRepos[0] || "No pinned repo",
+        });
+      }
     });
-  }
-  
+  });
+}
 
-// Function to fetch data from the Google Script URL
 async function fetchGithubDataFromUrl() {
-  const url = "https://script.google.com/macros/s/AKfycbyb3SSbZa5uxyg9UL4g_xJqFC0RNzerntdkmpzmY1GWbbsnY3C-F15J8ewOrfhFtC0/exec";
-  
+  const url =process.env.URL;
+
   try {
     const response = await axios.get(url);
     return response.data;
   } catch (err) {
-    return { error: 'Failed to fetch data from the URL' };
+    return { error: "Failed to fetch data from the URL" };
   }
 }
 
-// Route to handle scraping multiple GitHub URLs and house names, saving the data to a JSON file
-// app.get('/scrape_multiple_github', async (req, res) => {
-//   // Fetch data from the Google Script URL
-//   const dataFromUrl = await fetchGithubDataFromUrl();
-  
-//   // Check if the data is valid
-//   if (dataFromUrl.error) {
-//     return res.status(400).json({ error: dataFromUrl.error });
-//   }
-  
-//   // Extract the GitHub URLs and house names
-//   const githubData = dataFromUrl.profiles || [];
-//   console.log(githubData)
-  
-//   if (!githubData.length) {
-//     return res.status(400).json({ error: 'No GitHub data found in the response' });
-//   }
-
-//   const allUserData = [];
-
-//   // Loop through each GitHub URL, extract username and scrape data
-//   for (const entry of githubData) {
-//     const githubUrl = entry.github;
-//     const houseName = entry.location || 'Unknown House';  // Default house name
-
-//     if (githubUrl) {
-//       const username = extractUsernameFromUrl(githubUrl);
-//       if (username) {
-//         try {
-//           const userData = await scrapeGithub(username);
-//           userData.house = houseName;  // Add house_name to the user's data
-//           allUserData.push(userData);
-//         } catch (error) {
-//           allUserData.push({ error: `Failed to scrape data for user: ${username}` });
-//         }
-//       } else {
-//         allUserData.push({ error: `Invalid GitHub URL: ${githubUrl}` });
-//       }
-//     } else {
-//       allUserData.push({ error: 'GitHub URL is missing' });
-//     }
-//   }
-
-//   // Generate a filename based on the current date and time
-//   const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '');
-//   const filePath = path.join(__dirname, `scraped_github_data_${timestamp}.json`);
-
-//   // Save the scraped data to a JSON file
-//   fs.writeFileSync(filePath, JSON.stringify(allUserData, null, 2));
-
-//   // Return a response with the file path and scraped data
-//   res.json({
-//     message: `Data scraped and saved to ${filePath}`,
-//     data: allUserData,
-//   });
-// });
-app.get('/scrape_multiple_github', async (req, res) => {
-  // Fetch data from the Google Script URL
+// Route to Scrape GitHub Profiles and Save Data to MongoDB
+app.get("/scrape_multiple_github", async (req, res) => {
   const dataFromUrl = await fetchGithubDataFromUrl();
 
-  // Check if the data is valid
   if (dataFromUrl.error) {
     return res.status(400).json({ error: dataFromUrl.error });
   }
 
-  // Extract the GitHub URLs and house names
   const githubData = dataFromUrl.profiles || [];
-  console.log(githubData);
-
-  if (!githubData.length) {
-    return res.status(400).json({ error: 'No GitHub data found in the response' });
-  }
-
   const allUserData = [];
 
-  // Loop through each GitHub URL, extract username and scrape data
   for (const entry of githubData) {
     const githubUrl = entry.github;
-    const houseName = entry.location || 'Unknown House'; // Default house name
+    const houseName = entry.location || "Unknown House";
 
-    // Skip entries without a valid GitHub URL
     if (!githubUrl) continue;
 
     const username = extractUsernameFromUrl(githubUrl);
 
-    // Skip entries with invalid GitHub URLs
     if (!username) continue;
 
     try {
       const userData = await scrapeGithub(username);
-      userData.house = houseName; // Add house_name to the user's data
-      allUserData.push(userData);
+      userData.house = houseName;
+
+      // Save the data to MongoDB
+      const savedData = await GithubData.create(userData);
+      console.log("Saved data to MongoDB:", savedData);
+
+      allUserData.push(savedData);
     } catch (error) {
       allUserData.push({ error: `Failed to scrape data for user: ${username}` });
     }
   }
 
-  // Generate a filename based on the current date and time
-  const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '');
-  const filePath = path.join(__dirname, `scraped_github_data_${timestamp}.json`);
-
-  // Save the scraped data to a JSON file
-  fs.writeFileSync(filePath, JSON.stringify(allUserData, null, 2));
-
-  // Return a response with the file path and scraped data
   res.json({
-    message: `Data scraped and saved to ${filePath}`,
+    message: "Data scraped and saved to MongoDB",
     data: allUserData,
   });
 });
 
-
-app.get("/check", (req, res) => {
-  console.log("Request received on '/' route");
-  res.send("Hello, World!"); // Send a response to the client
+// Route to Fetch Data from MongoDB
+app.get("/get_saved_data", async (req, res) => {
+  try {
+    const data = await GithubData.find().sort({ timestamp: -1 }); // Get all saved data
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching data from MongoDB:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch data" });
+  }
 });
+
+
+app.get("/check",(req,res)=>{
+  res.send("Done")
+})
 // Start the server
-const port = 3005;
+const port = process.env.PORT || 3005;
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
