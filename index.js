@@ -9,11 +9,6 @@ const app = express();
 // Enable CORS for all routes
 app.use(cors()); // This will allow all origins. You can configure it to restrict origins if needed.
 
-// function extractUsernameFromUrl(githubUrl) {
-//   const regex = /^(https?:\/\/)?github\.com\/([a-zA-Z0-9-_]+)/;
-//   const match = githubUrl.match(regex);
-//   return match ? match[2] : null;
-// }
 
 function extractUsernameFromUrl(githubUrl) {
   const regex = /^(https?:\/\/)?github\.com\/([a-zA-Z0-9-_]+)/;
@@ -174,6 +169,11 @@ app.get('/scrape_multiple_github', async (req, res) => {
   });
 });
 
+
+app.get("/check", (req, res) => {
+  console.log("Request received on '/' route");
+  res.send("Hello, World!"); // Send a response to the client
+});
 // Start the server
 const port = 3005;
 app.listen(port, () => {
