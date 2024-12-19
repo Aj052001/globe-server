@@ -1,0 +1,114 @@
+[
+  {
+    "resident": "Jonathan Stern",
+    "revenue": 0,
+    "house": "Unknown House"
+  },
+  {
+    "resident": "Akshay Narisetti",
+    "revenue": 58,
+    "detail": "akshaynarisetti",
+    "house": "SF"
+  },
+  {
+    "resident": "Tasha Pais",
+    "revenue": 39,
+    "detail": "graphql-dai-display",
+    "house": "SF"
+  },
+  {
+    "resident": "Not available",
+    "revenue": 1,
+    "detail": "openai-swarm-node",
+    "house": "Bangalore"
+  },
+  {
+    "resident": "Mitch Williams",
+    "revenue": 11,
+    "detail": "Jarvis-OpenAI-Demo",
+    "house": "SF2"
+  },
+  {
+    "resident": "Daniel Wei",
+    "revenue": 87,
+    "detail": "hyperdti-cu",
+    "house": "New York"
+  },
+  {
+    "resident": "Christopher",
+    "revenue": 18,
+    "detail": "treehacks",
+    "house": "SF"
+  },
+  {
+    "resident": "Nicholas Leland",
+    "revenue": 23,
+    "detail": "DistortionML",
+    "house": "New York"
+  },
+  {
+    "resident": "Zach Kreutzjans",
+    "revenue": 20,
+    "detail": "zkreutzjanz.github.io",
+    "house": "SF"
+  },
+  {
+    "resident": "Nirbhay Singh Narang",
+    "revenue": 61,
+    "detail": "InvenTree-iOS",
+    "house": "New York"
+  },
+  {
+    "resident": "neha",
+    "revenue": 23,
+    "detail": "estaudere.github.io",
+    "house": "SF"
+  },
+  {
+    "resident": "Alex Shevchuk",
+    "revenue": 48,
+    "detail": "fluid_flow_analysis",
+    "house": "SF2"
+  },
+  {
+    "resident": "Rishabh Patni",
+    "revenue": 7,
+    "detail": "Coin-Recognition-CNN",
+    "house": "New York"
+  },
+  {
+    "resident": "AhmadElsaeed",
+    "revenue": 0,
+    "detail": "JetbotNanoProject",
+    "house": "New York"
+  },
+  {
+    "resident": "Adam Cohen Hillel",
+    "revenue": 48,
+    "detail": "ADeus",
+    "house": "SF2"
+  },
+  {
+    "resident": "Mackay",
+    "revenue": 56,
+    "detail": "DeSci",
+    "house": "SF"
+  },
+  {
+    "resident": "Abilash Senthilkumar",
+    "revenue": 40,
+    "detail": "InstaAR-Augmented-Reality",
+    "house": "Bangalore"
+  },
+  {
+    "resident": "Basim Al Harbi",
+    "revenue": 3,
+    "detail": "commando",
+    "house": "Arcadia"
+  },
+  {
+    "resident": "Not available",
+    "revenue": 0,
+    "house": "New York"
+  }
+]

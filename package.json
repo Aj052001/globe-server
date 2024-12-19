@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@tcortega/twitter-scraper": "^0.2.4",
+    "axios": "^1.7.8",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "github-scraper": "^7.1.1",
+    "scraper-twitter": "^1.3.0"
+  }
+}
